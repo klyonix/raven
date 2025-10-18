@@ -215,7 +215,6 @@ def clear_thread_reply_count_cache(thread_id: str):
 	frappe.cache().hdel("raven:thread_reply_count", thread_id)
 
 def after_request(response):
-    # Allow iframe embedding from your company site
-    response.headers["Content-Security-Policy"] = "frame-ancestors *"
+    response.headers["X-Frame-Options"] = "ALLOWALL"
 
     return response
