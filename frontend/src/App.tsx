@@ -60,12 +60,32 @@ init({
   set: 'apple',
 })
 
+const originalFetch = window.fetch;
+window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const stored = getStoredToken();
+  const isFrappeRequest =
+    typeof input === "string" &&
+    import.meta.env.VITE_FRAPPE_PATH &&
+    input.startsWith(import.meta.env.VITE_FRAPPE_PATH);
+
+  if (stored && isFrappeRequest) {
+    init = init || {};
+    init.headers = {
+      ...(init.headers || {}),
+      Authorization: `token ${stored.key}:${stored.secret}`,
+    };
+  }
+
+  return originalFetch(input, init);
+};
+
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path='/login' lazy={() => import('@/pages/auth/Login')} />
       <Route path='/login-with-email' lazy={() => import('@/pages/auth/LoginWithEmail')} />
+      <Route path='/login-with-token' lazy={() => import('@/pages/auth/LoginWithToken')} />
       <Route path='/signup' lazy={() => import('@/pages/auth/SignUp')} />
       <Route path='/forgot-password' lazy={() => import('@/pages/auth/ForgotPassword')} />
       <Route path="/" element={<ProtectedRoute />} errorElement={<ErrorPage />}>
